@@ -129,3 +129,142 @@ SELECT DISTINCT E2.ReportsTo
 FROM Employee E2
 )
 ;
+
+Extra Credit Queries 
+
+Q1. Find the media type which has 100 or more tracks. Print the name of such media type.
+Number of rows returned in the result = 3
+
+A: 
+SELECT MT.Name
+FROM MediaType MT
+WHERE MT.MediaTypeId IN
+(
+SELECT T.MediaTypeId
+FROM Track T
+GROUP BY T.MediaTypeId
+HAVING COUNT(T.MediaTypeId)>100
+)
+;
+
+
+Q2. Find the playlists which have one or more tracks that have never been purchased in California (CA).
+Print the Id, and the name of such playlists.
+Number of rows returned in the result = 18
+
+A: SELECT DISTINCT PT.PlaylistId, P.Name
+FROM PlaylistTrack PT, Playlist P
+WHERE PT.PlaylistId=P.PlaylistId AND EXISTS
+(
+SELECT DISTINCT TrackId FROM Track T
+EXCEPT
+SELECT DISTINCT IL.TrackId
+FROM Invoice I, InvoiceLine IL
+WHERE I.InvoiceId=IL.InvoiceId AND I.BillingState='CA'
+)
+;
+
+
+Q3. Find the customers who have invoice total greater than the average invoice total. Print the first and
+last name, postal code, and invoice total of such customers.
+Number of rows returned in the result = 179
+
+A: SELECT C.FirstName, C.LastName, C.PostalCode, I.Total
+FROM Customer C, Invoice I
+WHERE C.CustomerId=I.CustomerId AND I.Total>(SELECT AVG(I.Total) AS AvgInvoice
+FROM Invoice I)
+;
+
+
+Q4. Find the employees to whom at least two other employee reports to. Print the Id, and first and last
+name of such employees.
+Number of rows returned in the result = 3
+
+A: 
+SELECT E.EmployeeId, E.FirstName, E.LastName
+FROM Employee E
+GROUP BY E.ReportsTo
+HAVING COUNT(E.ReportsTo)>=2
+
+
+Q5. Find the artists that have tracks in the 'Rock' genre. Print the Id, and name of such artists.
+Number of rows returned in the result = 51
+
+A: SELECT DISTINCT A.ArtistId, A.Name
+FROM Album AL, Artist A
+WHERE A.ArtistId=AL.ArtistId AND AL.AlbumId IN
+(
+SELECT T.AlbumId
+FROM Genre G, Track T
+WHERE G.Name='Rock' AND G.GenreId=T.GenreId
+)
+;
+
+
+Q6. Find the artists who have recorded more than 10 albums. Print the Id, and name of such artists. Also
+print the number of albums for such artists.
+Number of rows returned in the result = 3
+
+A: SELECT A.ArtistId, A.Name
+FROM Artist A
+WHERE A.ArtistId IN
+(
+SELECT AL.ArtistId
+FROM Album AL
+GROUP BY ArtistId
+HAVING COUNT(AL.ArtistId)>10
+)
+;
+
+
+Q7. Find the customers who are served by support representatives based in the same State as the
+customer. Print the first and last name of the customer and the support representative, and the
+State in which they are located.
+Number of rows returned in the result = 1
+
+A: SELECT C.FirstName, C.LastName, C.State, E.FirstName, E.LastName, E.State
+FROM Customer C, Employee E
+WHERE E.EmployeeId=C.SupportRepId AND C.State=E.State 
+;
+
+
+Q8. Find the albums that have more than 5 tracks. Print the Id, and the title of such album. Also print the
+number of tracks in each album.
+Number of rows returned in the result = 250
+
+A: SELECT DISTINCT AL.AlbumId, AL.Title, COUNT(T.AlbumId) AS NumberOfTracks
+FROM Track T, Album AL
+WHERE AL.AlbumId=T.AlbumId
+GROUP BY T.AlbumId
+HAVING COUNT(T.AlbumId)>5
+;
+
+
+Q9. Modify the above query to output the number of albums that have more than 5 tracks.
+Number of rows returned in the result = 1
+
+A: SELECT COUNT(*) AS NumberOfAlbums FROM
+(
+SELECT DISTINCT AL.AlbumId, AL.Title, COUNT(T.AlbumId) AS NumberOfTracks
+FROM Track T, Album AL
+WHERE AL.AlbumId=T.AlbumId
+GROUP BY T.AlbumId
+HAVING COUNT(T.AlbumId)>5
+)
+;
+
+
+Q10. Find the artists that have tracks in 2 or more genres. Print the Id, and name of such artists.
+Number of rows returned in the result = 7
+
+A: SELECT DISTINCT  A.ArtistId, A.Name
+FROM Artist A
+WHERE A.ArtistId IN
+(
+SELECT DISTINCT AL.ArtistId
+FROM Track T, Album AL
+WHERE T.AlbumId=AL.AlbumId 
+GROUP BY T.GenreId
+HAVING COUNT(T.GenreId) >= 2
+)
+;
