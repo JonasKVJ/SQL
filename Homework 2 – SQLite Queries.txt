@@ -130,8 +130,9 @@ FROM Employee E2
 )
 ;
 
-Extra Credit Queries 
 
+
+--Extra Credit Queries--
 Q1. Find the media type which has 100 or more tracks. Print the name of such media type.
 Number of rows returned in the result = 3
 
