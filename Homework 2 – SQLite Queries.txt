@@ -1,0 +1,131 @@
+Homework 2 – SQLite Queries
+
+Q1. Find the genre which has at most 1 track. Print the name of such genre.
+Number of rows returned in the result = 1
+
+A:
+SELECT G.Name 
+FROM Genre G, Track T
+WHERE G.GenreId = T.GenreId
+GROUP BY G.GenreId 
+HAVING COUNT(*) < 2
+;
+
+
+Q2. Find the tracks that were purchased in California (CA) or Washington (WA). Print the name of
+such tracks.
+Number of rows returned in the result = 151
+
+A:  
+SELECT DISTINCT T.Name
+FROM Invoice I, Track T
+WHERE I.BillingState='CA' OR I.BillingState='WA'
+;
+
+
+Q3. Find the tracks that have been purchased in quantities greater than 5. Print the name of such
+tracks.
+Number of rows returned in the result = 0
+
+A: 
+SELECT T.Name
+FROM Track T, InvoiceLine IL
+WHERE T.TrackId =  
+(
+SELECT IL.TrackId
+FROM InvoiceLine IL
+GROUP BY IL.TrackId
+HAVING COUNT(IL.TrackId) > 5
+)
+;
+
+
+Q4. Find the tracks which cost less than a dollar but the track length (Milliseconds) is more than the
+average track length in this database. Print the name of such tracks.
+Number of rows returned in the result = 282
+
+A: 
+SELECT T1.Name
+FROM Track T1
+WHERE T1.UnitPrice < 1 AND T1.MilliSeconds > (SELECT AVG(T2.MilliSeconds) 
+FROM Track T2)
+;
+
+
+Q5. Find the playlists which have one or more tracks that have never been purchased. Print the Id,
+and the name of such playlists.
+Number of rows returned in the result = 14
+
+A: 
+SELECT P.PlaylistId, P.Name
+FROM Playlist P
+WHERE P.PlaylistId
+IN
+( SELECT DISTINCT PT.PlaylistId
+FROM PlaylistTrack PT
+WHERE EXISTS
+(SELECT T.TrackId FROM Track T WHERE  T.TrackId=PT.TrackId
+EXCEPT SELECT IL.TrackId FROM InvoiceLine IL) )
+;
+
+
+Q6. Find the playlists where the composer is not specified for 10 or more tracks. Print the Id, and the
+name of such playlists.
+Number of rows returned in the result = 6
+
+A: 
+SELECT P.PlaylistId, P.Name
+FROM Playlist P
+WHERE P.PlaylistId IN ( SELECT PT.PlaylistId
+FROM PlaylistTrack PT
+WHERE EXISTS (SELECT T.Composer
+FROM Track T, PlaylistTrack PT
+WHERE T.Composer IS NULL AND T.TrackId = PT.TrackId
+GROUP BY T.Composer
+HAVING COUNT(T.Composer)>10) )
+
+		 
+Q7. Find the playlists with 50 or more composers. Print the Id, and the name of such playlists. Tracks
+with no composer (null) should not be considered.
+Number of rows returned in the result = 4	
+
+A: 		
+SELECT PT.PlaylistId
+FROM  PlaylistTrack PT
+WHERE PT.TrackId 
+IN
+(SELECT T.TrackId
+FROM PlaylistTrack PT, Track T
+WHERE T.TrackId=PT.TrackId AND T.Composer IS NOT NULL
+GROUP BY T.Composer
+HAVING COUNT(DISTINCT T.Composer)>50)
+;
+
+
+Q8. Find all the customers who have invoice total greater than 5.65. Print the first and last name,
+postal code, and invoice total for such customers.
+Number of rows returned in the result = 179  
+
+A:
+SELECT C.FirstName, C.LastName, C.PostalCode, I.Total
+FROM Customer C, Invoice I
+WHERE I.Total >5.65 AND  C.CustomerId = I.CustomerId
+;
+
+
+Q9. Find all the Employees to whom no other employee reports to. Print the Id, and the first and last
+name of such employees.
+Number of rows returned in the result = 5
+
+A:
+SELECT E.EmployeeId, E.FirstName, E.LastName
+FROM Employee E
+WHERE E.EmployeeId IN
+(
+SELECT E1.EmployeeId 
+FROM Employee E1 
+EXCEPT 
+SELECT DISTINCT E2.ReportsTo
+FROM Employee E2
+)
+;
