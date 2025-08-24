@@ -1,4 +1,4 @@
-Homework 2 – SQLite Queries
+Homework – SQLite Queries
 
 Q1. Find the genre which has at most 1 track. Print the name of such genre.
 Number of rows returned in the result = 1
@@ -269,3 +269,4 @@ GROUP BY T.GenreId
 HAVING COUNT(T.GenreId) >= 2
 )
 ;
+
